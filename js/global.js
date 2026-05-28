@@ -223,13 +223,22 @@
   }
 
   /* ================================================
-     7. DISCLAIMER MODAL — first visit (sessionStorage)
+     7. DISCLAIMER MODAL — first visit (localStorage persistence)
      ================================================ */
   function initDisclaimer() {
     const modal = document.getElementById('disclaimer-modal');
     if (!modal) return;
 
+    // localStorage with graceful fallback
+    function hasAccepted() {
+      try { return !!localStorage.getItem('ie-disclaimer-accepted'); } catch (e) { return false; }
+    }
+    function markAccepted() {
+      try { localStorage.setItem('ie-disclaimer-accepted', '1'); } catch (e) { /* unavailable */ }
+    }
+
     window.closeDisclaimer = function () {
+      markAccepted();
       modal.classList.remove('open');
       modal.setAttribute('aria-hidden', 'true');
       document.body.style.overflow = '';
@@ -239,26 +248,39 @@
       modal.classList.add('open');
       modal.setAttribute('aria-hidden', 'false');
       document.body.style.overflow = 'hidden';
+      // Focus the agree button for accessibility
+      const agreeBtn = modal.querySelector('#disclaimer-agree');
+      if (agreeBtn) setTimeout(() => agreeBtn.focus(), 100);
     };
 
-    // Close on overlay click
+    // Wire agree button — ONLY way to close
+    const agreeBtn = document.getElementById('disclaimer-agree');
+    if (agreeBtn) {
+      agreeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        closeDisclaimer();
+      });
+    }
+
+    // Block overlay click — do NOT close on background click
     modal.addEventListener('click', (e) => {
-      if (e.target === modal) closeDisclaimer();
+      e.stopPropagation();
+      // intentionally no close
     });
 
-    // Close on Escape
+    // Block ESC key — modal is mandatory acceptance
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modal.classList.contains('open')) closeDisclaimer();
+      if (e.key === 'Escape' && modal.classList.contains('open')) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
     });
 
-    // Show on first visit
+    // Show only on first visit (localStorage persists across sessions)
     const loading = document.getElementById('loading-screen');
     const showDisclaimer = () => {
-      if (!sessionStorage.getItem('ie-disclaimer')) {
-        setTimeout(() => {
-          openDisclaimer();
-          sessionStorage.setItem('ie-disclaimer', '1');
-        }, 600);
+      if (!hasAccepted()) {
+        setTimeout(() => openDisclaimer(), 600);
       }
     };
 
@@ -347,10 +369,44 @@
   function initFilters() {
     const filterBtns = document.querySelectorAll('.filter-btn');
     if (!filterBtns.length) return;
+
+    // Filterable items: featured article + article cards
+    const filterableItems = document.querySelectorAll('[data-tag]');
+
     filterBtns.forEach(btn => {
+      // Accessibility
+      btn.setAttribute('role', 'button');
+      const isAll = btn.classList.contains('active');
+      btn.setAttribute('aria-pressed', isAll ? 'true' : 'false');
+
+      // Keyboard support
+      btn.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); btn.click(); }
+      });
+
       btn.addEventListener('click', () => {
-        filterBtns.forEach(b => b.classList.remove('active'));
+        // Update active + aria states
+        filterBtns.forEach(b => {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
+        });
         btn.classList.add('active');
+        btn.setAttribute('aria-pressed', 'true');
+
+        const selected = (btn.dataset.filterTag || 'all').toLowerCase();
+
+        // Show/hide filterable items
+        filterableItems.forEach(item => {
+          if (selected === 'all') {
+            item.style.display = '';
+            item.removeAttribute('aria-hidden');
+          } else {
+            const tags = (item.dataset.tag || '').toLowerCase().split(' ');
+            const visible = tags.includes(selected);
+            item.style.display = visible ? '' : 'none';
+            item.setAttribute('aria-hidden', visible ? 'false' : 'true');
+          }
+        });
       });
     });
   }

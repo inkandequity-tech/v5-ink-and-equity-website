@@ -112,7 +112,29 @@
       const currentPanel = document.getElementById(`bs${currentStep}`);
       if (!currentPanel) return;
 
-      // Only validate step 3 (contact details) — steps 1 & 2 use selection cards
+      // Step 1: require matter selection
+      if (currentStep === 1) {
+        const selected = currentPanel.querySelector('.matter-option.selected');
+        if (!selected) {
+          // Show inline error
+          let errEl = currentPanel.querySelector('.matter-required-error');
+          if (!errEl) {
+            errEl = document.createElement('p');
+            errEl.className = 'matter-required-error';
+            errEl.style.cssText = 'color:var(--color-error,#ef4444);font-size:var(--text-sm);margin-top:var(--space-3);';
+            errEl.textContent = 'Please select a matter type to continue.';
+            const grid = currentPanel.querySelector('.matter-grid');
+            if (grid) grid.after(errEl);
+          }
+          errEl.style.display = 'block';
+          return;
+        }
+        // Clear error if present
+        const errEl = currentPanel.querySelector('.matter-required-error');
+        if (errEl) errEl.style.display = 'none';
+      }
+
+      // Step 3: validate contact fields
       if (currentStep === 3) {
         if (!validateContainer(currentPanel)) return;
       }

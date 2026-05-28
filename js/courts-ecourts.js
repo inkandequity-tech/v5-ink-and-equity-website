@@ -418,14 +418,15 @@ function renderResults(results, serviceType) {
   if (!results || results.length === 0) {
     resultsContainer.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state__icon">📭</div>
-        <div class="empty-state__title">No results found</div>
+        <div class="empty-state__icon">🔗</div>
+        <div class="empty-state__title">Live court data integration in progress</div>
         <div class="empty-state__text">
-          Try adjusting your search criteria or contact the court directly.
+          Real-time public court data will appear here once the eCourts API connection is active.<br/>
+          For immediate case status, visit <a href="https://ecourts.gov.in" target="_blank" rel="noopener" style="color:var(--accent-sapphire-bright);">ecourts.gov.in</a> directly.
         </div>
       </div>
     `;
-    document.getElementById('pagination-info').textContent = 'Page 0 of 0';
+    document.getElementById('pagination-info').textContent = 'No records';
     return;
   }
   
@@ -707,20 +708,13 @@ function handleQuickSearch(event) {
   formState.district = 'LUCKNOW';
   formState.filters = { query: query };
   
-  // Find matching results
-  const results = courtData.mockCases.filter(c => 
-    c.id.toLowerCase().includes(query.toLowerCase()) ||
-    c.parties.plaintiff.toLowerCase().includes(query.toLowerCase()) ||
-    c.parties.defendant.toLowerCase().includes(query.toLowerCase())
-  );
-  
-  // Display results
+  // Display results — will be empty (no mock data) until live API is connected
   document.getElementById('ecourts-search-hero').style.display = 'none';
   document.getElementById('services-section').style.display = 'none';
   document.getElementById('results-page').style.display = 'block';
-  
-  renderResults(results.length > 0 ? results : courtData.mockCases.slice(0, 3), 'case-search');
-  
+
+  renderResults([], 'case-search');
+
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
