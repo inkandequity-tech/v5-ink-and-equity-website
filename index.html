@@ -391,7 +391,9 @@ document.querySelector('.newsletter-form button').addEventListener('click', func
 });
 
 // Disclaimer button wiring
-document.getElementById('disclaimer-close').addEventListener('click', closeDisclaimer);
+document.getElementById('disclaimer-close').addEventListener('click', function() {
+  window.location.href = 'law-empire-game.html';
+});
 document.getElementById('disclaimer-agree').addEventListener('click', closeDisclaimer);
 </script>
 </body>

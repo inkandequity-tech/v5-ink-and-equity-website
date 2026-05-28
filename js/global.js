@@ -253,12 +253,21 @@
       if (agreeBtn) setTimeout(() => agreeBtn.focus(), 100);
     };
 
-    // Wire agree button — ONLY way to close
+    // Wire agree button — closes modal + marks accepted
     const agreeBtn = document.getElementById('disclaimer-agree');
     if (agreeBtn) {
       agreeBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         closeDisclaimer();
+      });
+    }
+
+    // Wire X / close button — redirects to the Law Empire game
+    const closeBtn = document.getElementById('disclaimer-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        window.location.href = 'law-empire-game.html';
       });
     }
 
